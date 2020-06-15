@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+<html lang="en-US">
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,maximum-scale=2">
+    <link rel="stylesheet" type="text/css" media="screen" href="/PokerRL-Omaha/assets/css/style.css?v=f011891d2d533fadc9079f502718bee4d64ed213">
+
+<!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>PokerRL Omaha | PokerRL-Omaha</title>
+<meta name="generator" content="Jekyll v3.8.7" />
+<meta property="og:title" content="PokerRL Omaha" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Omaha Poker functionality+some features for PokerRL Reinforcement Learning card framwork" />
+<meta property="og:description" content="Omaha Poker functionality+some features for PokerRL Reinforcement Learning card framwork" />
+<link rel="canonical" href="https://diditforlulz273.github.io/PokerRL-Omaha/" />
+<meta property="og:url" content="https://diditforlulz273.github.io/PokerRL-Omaha/" />
+<meta property="og:site_name" content="PokerRL-Omaha" />
+<script type="application/ld+json">
+{"@type":"WebSite","headline":"PokerRL Omaha","url":"https://diditforlulz273.github.io/PokerRL-Omaha/","name":"PokerRL-Omaha","description":"Omaha Poker functionality+some features for PokerRL Reinforcement Learning card framwork","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/diditforlulz273/PokerRL-Omaha">View on GitHub</a>
+
+          <h1 id="project_title">PokerRL-Omaha</h1>
+          <h2 id="project_tagline">Omaha Poker functionality+some features for PokerRL Reinforcement Learning card framwork</h2>
+
+          
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1 id="pokerrl-omaha">PokerRL Omaha</h1>
+
+<p>A fork of the original <a href="https://github.com/EricSteinberger/PokerRL">Framework for Multi-Agent Deep Reinforcement Learning in Poker games</a> by <a href="https://github.com/EricSteinberger">Eric Steinberger</a>
+Combined with <a href="https://github.com/EricSteinberger/Deep-CFR">SD-CFR</a>.</p>
+
+<p>Now works with Omaha Poker.</p>
+
+<p>The Internet lacks any open-source Omaha Poker Reinforcement Learning code, so I created this part myself.</p>
+
+<p>It was hard to stop digging in the original code masterpiece so there are some additional functionality and improvements.</p>
+
+<h2 id="changes">Changes</h2>
+<p>Only differences are noticed here, compilation and basic usage are exhaustively explained in the original repos.
+Some new dependencies exist, full dep. list is in requirements_dist.txt.</p>
+
+<p>Used Pycharm+venv for development, so with Conda or other managers you might have to move start scripts to the root
+folder if encounter any problems with missing internal modules.</p>
+
+<h4 id="fully-functional-pot-limit-omaha-game">Fully functional Pot Limit Omaha game:</h4>
+
+<ul>
+  <li>Works for 2-6 players.</li>
+  <li>Smoothly integrated into the code, so the functionality of the original PokerRL is preserved.</li>
+  <li>All the lookup tables are rewritten in pure Python, although generation of
+  some of them is not fully vectorized, so takes up to 10 secs to build on the start.</li>
+  <li>Uses the original hand evaluator with Omaha combinations on top. Being naive and slow, it slightly impacts the speed of LBR rollouts.</li>
+</ul>
+
+<p>Use game type ‘PLO’ to start, an example is provided in ‘examples/PLO_training_start.py’.</p>
+
+<h4 id="preflop-hand-bucketing">Preflop Hand Bucketing</h4>
+<ul>
+  <li>Works for Hold’em and Omaha.</li>
+  <li>Improves Neural Network convergence at the beginning of the training, thus decreases overall convergence time.</li>
+  <li>Buckets together all preflop-isomorphic hands, e.g. AsKh and AdKc - suits don’t matter without a flop.</li>
+  <li>Uses additional bucketed lookup table with empty suit bits.</li>
+  <li>Found in neural network modules FLAT, FLAT2 and CNN.</li>
+</ul>
+
+<p>Could be named a handcrafted feature which slightly conflicts
+  with a general self-play education idea, but PokerRL actually buckets isomorphic flop cards, and everyone does it as well.</p>
+
+<h4 id="optimized-dense-residual-neural-network">Optimized Dense Residual Neural Network</h4>
+<ul>
+  <li>MainPokerModuleFLAT2 which is used by setting nn_type=’dense_residual’.</li>
+  <li>NN which is 2x deeper but has roughly the same
+ computational complexity as the original FLAT.</li>
+  <li>Yields around 11% faster training in terms of loss decrease.</li>
+  <li>Significantly outperforms the original NN agent in PLO on any training step tested in h2h.</li>
+</ul>
+
+<h4 id="convolutional-neural-network">Convolutional Neural Network</h4>
+<ul>
+  <li>Which hasn’t explored much and doesn’t work well ATM. The idea is to
+  explore network potency to pick all the parameters without human segmentation from a 2D array. First 2-4 rows are private cards,
+  next 5 are board cards and the last one is a vector of stacks and bets happened before.
+  Total array size is 8X24.</li>
+</ul>
+
+<h4 id="leaky-relu-usage-for-all-nns">Leaky ReLU usage for all NNs</h4>
+<ul>
+  <li>The negative slope of 0.1 is tested to improve loss decrease speed by 2-6% at no cost.</li>
+</ul>
+
+<h4 id="standalone-head-to-head-agent-evaluator">Standalone Head to Head Agent evaluator</h4>
+<ul>
+  <li>Standalone module written with takeaways from the original h2h evaluator of PokerRL.</li>
+  <li>Is handy to evaluate different agents against each other.
+ Can be found in ‘examples/interactive_agent_vs_agent.py’, a short parameter description is inside.
+ Class AgentTournament is extended to hold the functionality.</li>
+</ul>
+
+<h4 id="standalone-lbr-agent-evaluator">Standalone LBR Agent evaluator</h4>
+<ul>
+  <li>Standalone module written with takeaways from the original h2h evaluator of PokerRL.</li>
+  <li>Is handy to evaluate an agent with LBR method.
+ Can be found in ‘examples/eval_agent_lbr.py’, a short parameter description is inside.</li>
+</ul>
+
+<h4 id="hand-logger-for-h2h-evaluator">Hand Logger for H2H Evaluator</h4>
+<ul>
+  <li>Writes actual hands played in close-to-PokerStars format in .txt file.</li>
+  <li>Enabled by default in Standalone H2H Evaluator.</li>
+  <li>Modifies classes PokerEnv and AgentTournament and to catch all the activity.</li>
+  <li>Introduces HandHistoryLogger class.
+ Allows manual hand history reading and storing in a plain text, could also be
+  loaded in PT4 for basic analysis, although not fully mimics the correct
+  HH format - the only goal was to make played games easy readable.</li>
+</ul>
+
+<h4 id="slightly-altered-traversal-data-generation-scheme">Slightly altered Traversal Data generation scheme</h4>
+<ul>
+  <li>now n_traversals_per_iter sets the exact number of data entries created for each player
+ (was a number of external traverser rollouts before, which has been producing quite unstable amounts)</li>
+</ul>
+
+<h4 id="bug-fixes">Bug fixes</h4>
+<ul>
+  <li>I don’t remember them all, but among most important are the use of deprecated torch tensor classes
+ which crashed the GPU code on recent torch versions, some index miscalculations and wrong unsqueezes.</li>
+</ul>
+
+
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        
+        <p class="copyright">PokerRL-Omaha maintained by <a href="https://github.com/diditforlulz273">diditforlulz273</a></p>
+        
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+  </body>
+</html>
